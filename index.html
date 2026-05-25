@@ -453,10 +453,19 @@
 
   /* Print */
   @media print {
+    @page { size: A4 landscape; margin: 10mm; }
     .app-header, .upload-section, .log-actions, .eyes-toolbar, .add-case-btn, .schedule-preview, .btn { display: none !important; }
-    body { background: white; font-size: 11px; }
-    .case-table-wrap { border: 1px solid #999; }
+    body { background: white; font-size: 10px; }
+    .log-section { max-width: 100%; padding: 0; margin: 0; }
+    .case-table-wrap { border: 1px solid #999; width: 100%; }
+    .col-headers, .case-top {
+      grid-template-columns: 28px 120px 90px 140px 180px 100px 70px 50px 1fr;
+    }
+    .cell, .col-h { padding: 4px 6px; font-size: 10px; }
+    .case-row { page-break-inside: avoid; }
     canvas { display: block !important; }
+    .eyes-content { padding: 4px 6px; }
+    .diagrams-row { gap: 12px; }
   }
 </style>
 </head>
