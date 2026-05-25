@@ -791,10 +791,10 @@ function addCase(data = {}) {
       <div class="cell"><input type="text" placeholder="${imported ? '' : 'AS-OCT, FA, SL…'}"></div>
       <div class="cell"><input type="text" placeholder="${imported ? '' : '6/6 / 14'}"></div>
       <div class="cell center">
-        <div class="ud-wrap">
+        ${imported ? '' : `<div class="ud-wrap">
           <button class="ud-btn" onclick="toggleUD(this,'U')">U</button>
           <button class="ud-btn" onclick="toggleUD(this,'D')">D</button>
-        </div>
+        </div>`}
       </div>
       <div class="cell"><input type="text" placeholder="Notes…"></div>
     </div>
