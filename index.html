@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ophthalmology OR Case Log</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.10);
+    --border-strong: rgba(0,0,0,0.22);
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --text-faint: #aaa;
+    --accent: #1a5fa8;
+    --accent-light: #e8f0fa;
+    --danger: #b83232;
+    --danger-light: #faeaea;
+    --success: #1e7a3c;
+    --success-light: #eaf4ee;
+    --amber: #9a6500;
+    --amber-light: #fdf3d6;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 13px;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+  }
+  .header-meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .meta-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .meta-field input {
+    border: none;
+    border-bottom: 1px solid var(--border-strong);
+    background: transparent;
+    font-size: 12px;
+    color: var(--text);
+    padding: 2px 4px;
+    width: 110px;
+    outline: none;
+    font-family: inherit;
+  }
+
+  /* ── Upload Zone ── */
+  .upload-section {
+    margin: 24px auto;
+    max-width: 900px;
+    padding: 0 20px;
+  }
+  .upload-card {
+    background: var(--surface);
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .upload-card:hover, .upload-card.dragover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .upload-card input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 32px; color: var(--text-faint); margin-bottom: 10px; }
+  .upload-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--text-muted); }
+  .upload-hint { font-size: 11px; color: var(--text-faint); margin-top: 6px; }
+
+  .processing-bar {
+    display: none;
+    margin-top: 16px;
+    background: var(--accent-light);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--accent);
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--accent);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Schedule Preview ── */
+  .schedule-preview {
+    max-width: 900px;
+    margin: 0 auto 16px;
+    padding: 0 20px;
+    display: none;
+  }
+  .preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .preview-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .preview-header h3 { font-size: 13px; font-weight: 600; }
+  .preview-list { max-height: 180px; overflow-y: auto; }
+  .preview-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 1fr 80px;
+    gap: 8px;
+    padding: 7px 16px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 11.5px;
+    align-items: center;
+  }
+  .preview-row:last-child { border-bottom: none; }
+  .preview-row.header-row {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 10.5px;
+    background: var(--bg);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .badge-import {
+    font-size: 10px;
+    background: var(--success-light);
+    color: var(--success);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: 500;
+  }
+  .btn-import-all {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+  .btn-import-all:hover { background: #154d8a; }
+
+  /* ── Main Log Table ── */
+  .log-section {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .log-header h2 { font-size: 14px; font-weight: 600; }
+  .log-actions { display: flex; gap: 8px; }
+
+  .btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #154d8a; }
+  .btn-danger { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+  .btn-danger:hover { background: #f5d5d5; }
+
+  .case-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* Column header row */
+  .col-headers {
+    display: grid;
+    grid-template-columns: 36px 130px 110px 160px 200px 110px 80px 60px 1fr;
+    gap: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-strong);
+    padding: 0;
+  }
+  .col-h {
+    padding: 8px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-right: 0.5px solid var(--border);
+  }
+  .col-h:last-child { border-right: none; }
+  .col-h.center { text-align: center; }
+
+  /* Case rows */
+  .case-row {
+    border-bottom: 0.5px solid var(--border);
+    transition: background 0.1s;
+  }
+  .case-row:last-child { border-bottom: none; }
+  .case-row.imported { background: #fdfcf8; }
+
+  .case-top {
+    display: grid;
+    grid-template-columns: 36px 130px 110px 160px 200px 110px 80px 60px 1fr;
+    gap: 0;
+    min-height: 44px;
+    align-items: stretch;
+  }
+
+  .cell {
+    padding: 6px 10px;
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    min-height: 44px;
+  }
+  .cell:last-child { border-right: none; }
+  .cell.center { justify-content: center; align-items: center; }
+  .cell-no {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .cell input[type=text], .cell textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 12.5px;
+    color: var(--text);
+    font-family: inherit;
+    outline: none;
+    resize: none;
+    line-height: 1.5;
+    padding: 0;
+  }
+  .cell input[type=text]:focus, .cell textarea:focus {
+    background: var(--accent-light);
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+  .imported-text {
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .imported-sub {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  /* U/D buttons */
+  .ud-wrap { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; width: 100%; }
+  .ud-btn {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit;
+    transition: all 0.1s;
+  }
+  .ud-btn.active-u { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+  .ud-btn.active-d { background: var(--danger-light); color: var(--danger); border-color: var(--danger); }
+
+  /* Eye diagram section */
+  .case-eyes {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    border-top: 0.5px dashed var(--border);
+  }
+  .eyes-spacer { border-right: 0.5px solid var(--border); }
+  .eyes-content {
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .eyes-toolbar {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .tool-btn {
+    font-size: 10px;
+    padding: 3px 8px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.1s;
+  }
+  .tool-btn:hover { background: var(--bg); }
+  .tool-btn.active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+  .color-dot { width: 13px; height: 13px; border-radius: 50%; cursor: pointer; border: 1.5px solid transparent; flex-shrink: 0; transition: border-color 0.1s; }
+  .color-dot.selected { border-color: var(--text); }
+
+  .diagrams-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .diagram-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .diagram-type-label {
+    font-size: 9px;
+    color: var(--text-faint);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .diagram-pair {
+    display: flex;
+    gap: 8px;
+  }
+  .diagram-eye {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .diagram-eye span {
+    font-size: 9px;
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+  canvas { display: block; cursor: crosshair; }
+
+  /* Add row button */
+  .add-case-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-top: 0.5px solid var(--border);
+    color: var(--text-faint);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+  }
+  .add-case-btn:hover { background: var(--bg); color: var(--text-muted); }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .stat-item { display: flex; align-items: center; gap: 5px; }
+
+  /* Empty state */
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 13px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .col-headers, .case-top { grid-template-columns: 30px 1fr 1fr 1fr 150px 80px 60px 48px 1fr; }
+  }
+
+  /* Print */
+  @media print {
+    .app-header, .upload-section, .log-actions, .eyes-toolbar, .add-case-btn, .schedule-preview, .btn { display: none !important; }
+    body { background: white; font-size: 11px; }
+    .case-table-wrap { border: 1px solid #999; }
+    canvas { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>
+    <i class="ti ti-eye" style="font-size:18px;color:#1a5fa8;"></i>
+    Ophthalmology OR Case Log
+  </h1>
+  <div class="header-meta">
+    <div class="meta-field">
+      <i class="ti ti-calendar" style="font-size:14px;"></i>
+      <input type="text" id="hdr-date" placeholder="Date">
+    </div>
+    <div class="meta-field">
+      <i class="ti ti-stethoscope" style="font-size:14px;"></i>
+      <input type="text" id="hdr-attending" placeholder="Attending">
+    </div>
+    <div class="meta-field">
+      <i class="ti ti-door" style="font-size:14px;"></i>
+      <input type="text" id="hdr-room" placeholder="OR Room">
+    </div>
+  </div>
+</header>
+
+<!-- Upload Section -->
+<section class="upload-section">
+  <div class="upload-card" id="upload-zone">
+    <input type="file" id="file-input" accept="image/*,.pdf" multiple>
+    <div class="upload-icon"><i class="ti ti-file-upload"></i></div>
+    <div class="upload-title">Upload OR Schedule</div>
+    <div class="upload-sub">Drag & drop your OR schedule photo or PDF here</div>
+    <div class="upload-hint">Supports: JPG, PNG, PDF · Patient name, age, diagnosis and operation will be auto-imported</div>
+  </div>
+  <div class="processing-bar" id="processing-bar">
+    <div class="spinner"></div>
+    <span id="processing-text">Reading OR schedule…</span>
+  </div>
+</section>
+
+<!-- Schedule Preview (shown after upload) -->
+<section class="schedule-preview" id="schedule-preview">
+  <div class="preview-card">
+    <div class="preview-header">
+      <h3><i class="ti ti-list-check" style="margin-right:6px;"></i>Detected Patients — <span id="preview-count">0</span> found</h3>
+      <button class="btn-import-all" onclick="importAll()">
+        <i class="ti ti-download"></i> Import All to Case Log
+      </button>
+    </div>
+    <div class="preview-row header-row">
+      <span>#</span>
+      <span>Name / Age</span>
+      <span>HN</span>
+      <span>Diagnosis</span>
+      <span>Operation</span>
+      <span></span>
+    </div>
+    <div class="preview-list" id="preview-list"></div>
+  </div>
+</section>
+
+<!-- Case Log -->
+<section class="log-section">
+  <div class="log-header">
+    <h2><i class="ti ti-clipboard-list" style="margin-right:6px;color:#1a5fa8;"></i>Case Log</h2>
+    <div class="log-actions">
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-item"><i class="ti ti-users" style="font-size:13px;"></i><span id="stat-count">0 cases</span></div>
+      </div>
+      <button class="btn" onclick="addCase()"><i class="ti ti-plus"></i> Add case</button>
+      <button class="btn" onclick="window.print()"><i class="ti ti-printer"></i> Print</button>
+      <button class="btn btn-danger" onclick="clearAll()"><i class="ti ti-trash"></i> Clear</button>
+    </div>
+  </div>
+
+  <div class="case-table-wrap">
+    <div class="col-headers">
+      <div class="col-h center">No</div>
+      <div class="col-h">Name / Age</div>
+      <div class="col-h">HN</div>
+      <div class="col-h">Diagnosis</div>
+      <div class="col-h">Operation</div>
+      <div class="col-h">Instrument</div>
+      <div class="col-h">VA / IOP</div>
+      <div class="col-h center">U/D</div>
+      <div class="col-h">MISC</div>
+    </div>
+    <div id="cases-container">
+      <div class="empty-state" id="empty-state">
+        <i class="ti ti-file-upload" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+        Upload an OR schedule above, or click "Add case" to start manually
+      </div>
+    </div>
+    <button class="add-case-btn" onclick="addCase()">
+      <i class="ti ti-plus"></i> Add case
+    </button>
+  </div>
+</section>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let cases = [];
+let caseCounter = 0;
+const drawStates = {};
+const AS = 58, FS = 68;
+
+// ── Date default ──────────────────────────────────────────────────────────
+document.getElementById('hdr-date').value = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+
+// ── Upload / Drag-drop ─────────────────────────────────────────────────────
+const zone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+function handleFiles(files) {
+  if (!files.length) return;
+  const pb = document.getElementById('processing-bar');
+  pb.style.display = 'flex';
+  document.getElementById('processing-text').textContent = 'Reading OR schedule with AI…';
+
+  const file = files[0];
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const mime = file.type || 'image/jpeg';
+    await extractFromImage(base64, mime);
+    pb.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function extractFromImage(base64Data, mimeType) {
+  try {
+    const prompt = `You are reading a Thai hospital OR (Operating Room) schedule photo.
+Extract ALL patients from this schedule image.
+For each patient, extract:
+1. Patient full name (may be Thai or English)
+2. Age (if shown next to name, e.g. "นาย สมชาย อายุ 45" → age 45)
+3. HN (Hospital Number)
+4. Diagnosis / DX (e.g. DME, CRVO, CNV, AMD, Cataract, etc.)
+5. Operation / Procedure (e.g. IVT Avastin, Phaco, DMEK, etc.)
+
+Return ONLY a JSON array, no other text:
+[
+  {"name": "...", "age": "...", "hn": "...", "dx": "...", "operation": "..."},
+  ...
+]
+
+If a field is not visible, use empty string "".
+Include ALL patients you can see in the schedule.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64Data } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.map(b => b.text || '').join('') || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const patients = JSON.parse(clean);
+    showPreview(patients);
+  } catch (err) {
+    console.error('Extraction error:', err);
+    alert('Could not read schedule. Please check the image and try again.');
+  }
+}
+
+// ── Preview ────────────────────────────────────────────────────────────────
+let pendingPatients = [];
+
+function showPreview(patients) {
+  pendingPatients = patients;
+  document.getElementById('preview-count').textContent = patients.length;
+  const list = document.getElementById('preview-list');
+  list.innerHTML = '';
+
+  patients.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.className = 'preview-row';
+    const nameAge = p.name + (p.age ? ` (${p.age})` : '');
+    row.innerHTML = `
+      <span style="color:var(--text-faint);font-size:11px;">${i+1}</span>
+      <span>${nameAge || '—'}</span>
+      <span style="font-family:monospace;font-size:11px;">${p.hn || '—'}</span>
+      <span>${p.dx || '—'}</span>
+      <span>${p.operation || '—'}</span>
+      <span><span class="badge-import">Import</span></span>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('schedule-preview').style.display = 'block';
+}
+
+function importAll() {
+  pendingPatients.forEach(p => {
+    addCase({
+      name: p.name + (p.age ? ` (${p.age})` : ''),
+      hn: p.hn,
+      dx: p.dx,
+      operation: p.operation,
+      imported: true
+    });
+  });
+  document.getElementById('schedule-preview').style.display = 'none';
+  pendingPatients = [];
+  updateStats();
+}
+
+// ── Canvas drawing ─────────────────────────────────────────────────────────
+function drawAnterior(ctx, S) {
+  const cx=S/2, cy=S/2;
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,S,S);
+  ctx.beginPath(); ctx.arc(cx,cy,S/2-2,0,Math.PI*2);
+  ctx.strokeStyle='#222'; ctx.lineWidth=2.2; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,S/2-7,0,Math.PI*2);
+  ctx.strokeStyle='#222'; ctx.lineWidth=1.1; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,S/2-15,0,Math.PI*2);
+  ctx.strokeStyle='#bbb'; ctx.lineWidth=0.6; ctx.stroke();
+}
+
+function drawFundus(ctx, S, discSide) {
+  const cx=S/2, cy=S/2, R=S/2-2;
+  const fg='#222', mid='#555', faint='#ccc';
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,S,S);
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.strokeStyle=fg; ctx.lineWidth=1.5; ctx.stroke();
+  const nSc=40;
+  for(let i=0;i<nSc;i++){
+    const a1=(i/nSc)*Math.PI*2, a2=((i+0.5)/nSc)*Math.PI*2, a3=((i+1)/nSc)*Math.PI*2;
+    const x1=cx+Math.cos(a1)*(R-1), y1=cy+Math.sin(a1)*(R-1);
+    const xm=cx+Math.cos(a2)*(R-9), ym=cy+Math.sin(a2)*(R-9);
+    const x3=cx+Math.cos(a3)*(R-1), y3=cy+Math.sin(a3)*(R-1);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(xm,ym,x3,y3);
+    ctx.strokeStyle=fg; ctx.lineWidth=0.7; ctx.stroke();
+  }
+  for(let i=0;i<80;i++){
+    const a=(i/80)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*(R-10),cy+Math.sin(a)*(R-10));
+    ctx.lineTo(cx+Math.cos(a)*(R-16),cy+Math.sin(a)*(R-16));
+    ctx.strokeStyle=faint; ctx.lineWidth=0.4; ctx.stroke();
+  }
+  const dOff=R*0.20;
+  const dX=discSide==='right'?cx+dOff:cx-dOff, dY=cy, dR=R*0.13;
+  ctx.beginPath(); ctx.arc(dX,dY,dR,0,Math.PI*2);
+  ctx.strokeStyle=mid; ctx.lineWidth=0.9; ctx.stroke();
+  ctx.beginPath(); ctx.arc(dX,dY,dR*0.42,0,Math.PI*2);
+  ctx.strokeStyle=faint; ctx.lineWidth=0.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(dX,dY,1,0,Math.PI*2);
+  ctx.fillStyle=mid; ctx.fill();
+  const fX=discSide==='right'?cx-R*0.10:cx+R*0.10, fY=cy;
+  ctx.beginPath(); ctx.arc(fX,fY,1,0,Math.PI*2); ctx.fillStyle=mid; ctx.fill();
+  ctx.beginPath(); ctx.arc(fX,fY,R*0.12,0,Math.PI*2); ctx.strokeStyle=faint; ctx.lineWidth=0.4; ctx.stroke();
+  function v(pts,w){
+    ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length-1;i++){const xc=(pts[i][0]+pts[i+1][0])/2,yc=(pts[i][1]+pts[i+1][1])/2;ctx.quadraticCurveTo(pts[i][0],pts[i][1],xc,yc);}
+    ctx.lineTo(pts[pts.length-1][0],pts[pts.length-1][1]);
+    ctx.strokeStyle=mid; ctx.lineWidth=w; ctx.lineCap='round'; ctx.stroke();
+  }
+  const t=discSide==='right'?-1:1, n=-t;
+  v([[dX,dY],[dX+t*4,dY-7],[cx+t*6,cy-13],[cx+t*14,cy-17],[cx+t*22,cy-12],[cx+t*28,cy-8]],1.0);
+  v([[cx+t*14,cy-17],[cx+t*18,cy-23],[cx+t*14,cy-27]],0.5);
+  v([[cx+t*22,cy-12],[cx+t*28,cy-16],[cx+t*30,cy-11]],0.45);
+  v([[dX,dY],[dX+t*4,dY+7],[cx+t*6,cy+13],[cx+t*14,cy+17],[cx+t*22,cy+12],[cx+t*28,cy+8]],1.0);
+  v([[cx+t*14,cy+17],[cx+t*18,cy+23],[cx+t*14,cy+27]],0.5);
+  v([[cx+t*22,cy+12],[cx+t*28,cy+16],[cx+t*30,cy+11]],0.45);
+  v([[dX,dY],[dX+n*5,dY-6],[dX+n*11,dY-13],[dX+n*17,dY-11]],0.7);
+  v([[dX+n*11,dY-13],[dX+n*13,dY-19],[dX+n*11,dY-24]],0.4);
+  v([[dX,dY],[dX+n*5,dY+6],[dX+n*11,dY+13],[dX+n*17,dY+11]],0.7);
+  v([[dX+n*11,dY+13],[dX+n*13,dY+19],[dX+n*11,dY+24]],0.4);
+}
+
+function makeCanvas(id, type, discSide) {
+  const S=type==='anterior'?AS:FS;
+  const c=document.createElement('canvas');
+  c.width=S; c.height=S;
+  c.style.cssText='display:block;cursor:crosshair;border-radius:50%;border:0.5px solid #eee;';
+  c.id=id; c._type=type; c._discSide=discSide;
+  const ctx=c.getContext('2d');
+  if(type==='anterior') drawAnterior(ctx,S); else drawFundus(ctx,S,discSide);
+  c._regen=()=>{ if(type==='anterior') drawAnterior(ctx,S); else drawFundus(ctx,S,discSide); };
+  const state={erasing:false, color:'#111', lineW:1.2};
+  drawStates[id]=state;
+  let drawing=false, lx=0, ly=0;
+  function pos(e){const r=c.getBoundingClientRect(),sx=S/r.width,sy=S/r.height;if(e.touches)return[(e.touches[0].clientX-r.left)*sx,(e.touches[0].clientY-r.top)*sy];return[(e.clientX-r.left)*sx,(e.clientY-r.top)*sy];}
+  function start(e){e.preventDefault();drawing=true;[lx,ly]=pos(e);}
+  function draw(e){if(!drawing)return;e.preventDefault();const[x,y]=pos(e);const s=drawStates[id];ctx.beginPath();ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=s.erasing?'#fff':s.color;ctx.lineWidth=s.erasing?8:s.lineW;ctx.moveTo(lx,ly);ctx.lineTo(x,y);ctx.stroke();[lx,ly]=[x,y];}
+  function stop(){drawing=false;}
+  c.addEventListener('mousedown',start);c.addEventListener('mousemove',draw);c.addEventListener('mouseup',stop);c.addEventListener('mouseleave',stop);
+  c.addEventListener('touchstart',start,{passive:false});c.addEventListener('touchmove',draw,{passive:false});c.addEventListener('touchend',stop);
+  return c;
+}
+
+// ── Add Case ───────────────────────────────────────────────────────────────
+function addCase(data = {}) {
+  caseCounter++;
+  const id = 'case-' + caseCounter;
+  const imported = data.imported || false;
+
+  const empty = document.getElementById('empty-state');
+  if (empty) empty.remove();
+
+  const container = document.getElementById('cases-container');
+
+  const row = document.createElement('div');
+  row.className = 'case-row' + (imported ? ' imported' : '');
+  row.id = id;
+
+  // Spacer rows between cases (5 lines each = extra height)
+  row.style.minHeight = '0';
+
+  const cids = [id+'_aOD', id+'_aOS', id+'_fOD', id+'_fOS'];
+
+  // Build the row HTML
+  const nameVal = data.name || '';
+  const hnVal = data.hn || '';
+  const dxVal = data.dx || '';
+  const opVal = data.operation || '';
+
+  row.innerHTML = `
+    <div class="case-top">
+      <div class="cell cell-no center">${caseCounter}</div>
+      <div class="cell">
+        ${imported
+          ? `<div><div class="imported-text">${nameVal}</div></div>`
+          : `<input type="text" placeholder="Patient name (age)" value="${nameVal}">`
+        }
+      </div>
+      <div class="cell">
+        ${imported
+          ? `<div class="imported-text">${hnVal}</div>`
+          : `<input type="text" placeholder="HN" value="${hnVal}" style="font-family:monospace;">`
+        }
+      </div>
+      <div class="cell">
+        ${imported
+          ? `<div class="imported-text">${dxVal}</div>`
+          : `<input type="text" placeholder="Diagnosis" value="${dxVal}">`
+        }
+      </div>
+      <div class="cell">
+        ${imported
+          ? `<div class="imported-text">${opVal}</div>`
+          : `<input type="text" placeholder="Operation / Procedure" value="${opVal}">`
+        }
+      </div>
+      <div class="cell"><input type="text" placeholder="AS-OCT, FA, SL…"></div>
+      <div class="cell"><input type="text" placeholder="6/6 / 14"></div>
+      <div class="cell center">
+        <div class="ud-wrap">
+          <button class="ud-btn" onclick="toggleUD(this,'U')">U</button>
+          <button class="ud-btn" onclick="toggleUD(this,'D')">D</button>
+        </div>
+      </div>
+      <div class="cell"><input type="text" placeholder="Notes…"></div>
+    </div>
+    <div class="case-eyes" id="eyes-${id}">
+      <div class="eyes-spacer"></div>
+      <div class="eyes-content">
+        <div class="eyes-toolbar" id="tb-${id}"></div>
+        <div class="diagrams-row" id="diag-${id}"></div>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(row);
+
+  // Build toolbar
+  const tb = document.getElementById('tb-' + id);
+  const penBtn = document.createElement('button');
+  penBtn.className = 'tool-btn active'; penBtn.textContent = '✏ pen';
+  const erBtn = document.createElement('button');
+  erBtn.className = 'tool-btn'; erBtn.textContent = '⬜ erase';
+  const rstBtn = document.createElement('button');
+  rstBtn.className = 'tool-btn'; rstBtn.textContent = '↺ reset';
+  const delBtn = document.createElement('button');
+  delBtn.className = 'tool-btn'; delBtn.style.marginLeft = 'auto'; delBtn.style.color = 'var(--danger)'; delBtn.textContent = '✕ remove';
+
+  penBtn.onclick = () => { cids.forEach(c=>{if(drawStates[c])drawStates[c].erasing=false;}); penBtn.classList.add('active'); erBtn.classList.remove('active'); };
+  erBtn.onclick = () => { cids.forEach(c=>{if(drawStates[c])drawStates[c].erasing=true;}); erBtn.classList.add('active'); penBtn.classList.remove('active'); };
+  rstBtn.onclick = () => { cids.forEach(c=>{const el=document.getElementById(c);if(el&&el._regen)el._regen();}); };
+  delBtn.onclick = () => { if(confirm('Remove this case?')){ row.remove(); updateStats(); } };
+
+  tb.appendChild(penBtn); tb.appendChild(erBtn); tb.appendChild(rstBtn);
+
+  // Color dots
+  const colors = [{c:'#111',l:'black'},{c:'#c0392b',l:'red'},{c:'#1a6fa8',l:'blue'},{c:'#1e8449',l:'green'},{c:'#d4880a',l:'orange'}];
+  colors.forEach((col, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot' + (i===0?' selected':'');
+    dot.style.background = col.c; dot.title = col.l;
+    dot.onclick = () => {
+      cids.forEach(c=>{if(drawStates[c])drawStates[c].color=col.c;});
+      tb.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('selected'));
+      dot.classList.add('selected');
+    };
+    tb.appendChild(dot);
+  });
+  tb.appendChild(delBtn);
+
+  // Build diagrams
+  const diagRow = document.getElementById('diag-' + id);
+
+  function eyeGroup(label, c1id, c2id, type, side1, side2) {
+    const g = document.createElement('div');
+    g.className = 'diagram-group';
+    const lbl = document.createElement('div');
+    lbl.className = 'diagram-type-label'; lbl.textContent = label;
+    const pair = document.createElement('div');
+    pair.className = 'diagram-pair';
+
+    [['OD', c1id, side1], ['OS', c2id, side2]].forEach(([eyeLbl, cid, side]) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'diagram-eye';
+      wrap.appendChild(makeCanvas(cid, type, side));
+      const sp = document.createElement('span'); sp.textContent = eyeLbl;
+      wrap.appendChild(sp);
+      pair.appendChild(wrap);
+    });
+
+    g.appendChild(lbl); g.appendChild(pair);
+    return g;
+  }
+
+  const sep = document.createElement('div');
+  sep.style.cssText = 'width:1px;background:var(--border);height:80px;align-self:center;margin:0 4px;';
+
+  diagRow.appendChild(eyeGroup('anterior segment', id+'_aOD', id+'_aOS', 'anterior', null, null));
+  diagRow.appendChild(sep);
+  diagRow.appendChild(eyeGroup('fundus', id+'_fOD', id+'_fOS', 'fundus', 'right', 'left'));
+
+  // Add spacing between patients (5 lines)
+  if (caseCounter > 1) {
+    row.style.paddingTop = '10px';
+    row.style.borderTop = '2px solid var(--border)';
+  }
+
+  updateStats();
+}
+
+function toggleUD(btn, type) {
+  const cell = btn.closest('.ud-wrap');
+  const btns = cell.querySelectorAll('.ud-btn');
+  if (type === 'U') {
+    const already = btn.classList.contains('active-u');
+    btns[0].classList.remove('active-u'); btns[1].classList.remove('active-d');
+    if (!already) btn.classList.add('active-u');
+  } else {
+    const already = btn.classList.contains('active-d');
+    btns[0].classList.remove('active-u'); btns[1].classList.remove('active-d');
+    if (!already) btn.classList.add('active-d');
+  }
+}
+
+function updateStats() {
+  const count = document.querySelectorAll('.case-row').length;
+  document.getElementById('stat-count').textContent = count + (count === 1 ? ' case' : ' cases');
+}
+
+function clearAll() {
+  if (!confirm('Clear all cases? This cannot be undone.')) return;
+  document.getElementById('cases-container').innerHTML = '<div class="empty-state" id="empty-state"><i class="ti ti-file-upload" style="font-size:28px;display:block;margin-bottom:8px;"></i>Upload an OR schedule above, or click "Add case" to start manually</div>';
+  caseCounter = 0;
+  updateStats();
+}
+
+// Start with 0 cases — wait for upload or manual add
+updateStats();
+</script>
+</body>
+</html>
