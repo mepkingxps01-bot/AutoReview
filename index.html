@@ -777,28 +777,16 @@ function addCase(data = {}) {
     <div class="case-top">
       <div class="cell cell-no center">${caseCounter}</div>
       <div class="cell">
-        ${imported
-          ? `<div><div class="imported-text">${nameVal}</div></div>`
-          : `<input type="text" placeholder="Patient name (age)" value="${nameVal}">`
-        }
+        <input type="text" placeholder="Patient name (age)" value="${nameVal}">
       </div>
       <div class="cell">
-        ${imported
-          ? `<div class="imported-text">${hnVal}</div>`
-          : `<input type="text" placeholder="HN" value="${hnVal}" style="font-family:monospace;">`
-        }
+        <input type="text" placeholder="HN" value="${hnVal}" style="font-family:monospace;">
       </div>
       <div class="cell">
-        ${imported
-          ? `<div class="imported-text">${dxVal}</div>`
-          : `<input type="text" placeholder="Diagnosis" value="${dxVal}">`
-        }
+        <input type="text" placeholder="Diagnosis" value="${dxVal}">
       </div>
       <div class="cell">
-        ${imported
-          ? `<div class="imported-text">${opVal}</div>`
-          : `<input type="text" placeholder="Operation / Procedure" value="${opVal}">`
-        }
+        <input type="text" placeholder="Operation / Procedure" value="${opVal}">
       </div>
       <div class="cell"><input type="text" placeholder="AS-OCT, FA, SL…"></div>
       <div class="cell"><input type="text" placeholder="6/6 / 14"></div>
