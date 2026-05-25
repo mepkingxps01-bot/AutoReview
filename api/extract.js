@@ -4,23 +4,27 @@ export default async function handler(req, res) {
   const { base64Data, mimeType } = req.body;
   if (!base64Data || !mimeType) return res.status(400).json({ error: 'Missing base64Data or mimeType' });
 
-  const prompt = `You are reading a Thai hospital OR (Operating Room) schedule photo.
-Extract ALL patients from this schedule image.
-For each patient, extract:
-1. Patient full name (may be Thai or English)
-2. Age (if shown next to name, e.g. "นาย สมชาย อายุ 45" → age 45)
-3. HN (Hospital Number)
-4. Diagnosis / DX (e.g. DME, CRVO, CNV, AMD, Cataract, etc.)
-5. Operation / Procedure (e.g. IVT Avastin, Phaco, DMEK, etc.)
+  const prompt = `You are an expert at reading Thai hospital OR (Operating Room) schedule documents.
+Carefully examine the entire image and extract EVERY patient listed.
 
-Return ONLY a JSON array, no other text:
+For each patient extract ALL of the following:
+1. name — Full patient name (Thai or English). Include title (นาย/นาง/นางสาว/ด.ช/ด.ญ etc.)
+2. age — Age as a number string. Look near the name or in an age column.
+3. hn — Hospital Number (HN). May be labeled HN, เลขที่, or a numeric code.
+4. dx — Full diagnosis. Copy the COMPLETE text (e.g. "Proliferative Diabetic Retinopathy", "CRVO with ME", "Nuclear cataract OD"). Do NOT shorten.
+5. operation — Full operation/procedure name. Copy COMPLETELY (e.g. "IVT Bevacizumab (Avastin) OD", "Phacoemulsification + IOL OS", "DMEK OD"). Do NOT shorten.
+
+Rules:
+- Include EVERY patient row you can see, even partial ones.
+- Copy diagnosis and operation text EXACTLY as written — do not abbreviate or paraphrase.
+- If a cell spans multiple lines, combine all lines into one string.
+- If a field is missing or unreadable, use "".
+
+Return ONLY a valid JSON array with no extra text, markdown, or explanation:
 [
   {"name": "...", "age": "...", "hn": "...", "dx": "...", "operation": "..."},
   ...
-]
-
-If a field is not visible, use empty string "".
-Include ALL patients you can see in the schedule.`;
+]`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -32,7 +36,7 @@ Include ALL patients you can see in the schedule.`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
+        max_tokens: 4000,
         messages: [{
           role: 'user',
           content: [
