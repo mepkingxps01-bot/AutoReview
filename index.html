@@ -303,6 +303,8 @@
     resize: none;
     line-height: 1.5;
     padding: 0;
+    overflow: hidden;
+    box-sizing: border-box;
   }
   .cell input[type=text]:focus, .cell textarea:focus {
     background: var(--accent-light);
@@ -573,6 +575,18 @@ let caseCounter = 0;
 const drawStates = {};
 const AS = 58, FS = 68;
 
+// ── Auto-resize textareas ─────────────────────────────────────────────────
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+function initTextareas(container) {
+  container.querySelectorAll('textarea').forEach(ta => {
+    autoResize(ta);
+    ta.addEventListener('input', () => autoResize(ta));
+  });
+}
+
 // ── Date default ──────────────────────────────────────────────────────────
 document.getElementById('hdr-date').value = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 
@@ -786,16 +800,16 @@ function addCase(data = {}) {
     <div class="case-top">
       <div class="cell cell-no center">${caseCounter}</div>
       <div class="cell">
-        <textarea rows="2" placeholder="Patient name (age)">${nameVal}</textarea>
+        <textarea rows="1" placeholder="Patient name (age)">${nameVal}</textarea>
       </div>
       <div class="cell">
-        <textarea rows="2" placeholder="HN" style="font-family:monospace;">${hnVal}</textarea>
+        <textarea rows="1" placeholder="HN" style="font-family:monospace;">${hnVal}</textarea>
       </div>
       <div class="cell">
-        <textarea rows="2" placeholder="Diagnosis">${dxVal}</textarea>
+        <textarea rows="1" placeholder="Diagnosis">${dxVal}</textarea>
       </div>
       <div class="cell">
-        <textarea rows="2" placeholder="Operation / Procedure">${opVal}</textarea>
+        <textarea rows="1" placeholder="Operation / Procedure">${opVal}</textarea>
       </div>
       <div class="cell"><input type="text" placeholder="${imported ? '' : 'AS-OCT, FA, SL…'}"></div>
       <div class="cell"><input type="text" placeholder="${imported ? '' : '6/6 / 14'}"></div>
@@ -812,6 +826,7 @@ function addCase(data = {}) {
   `;
 
   container.appendChild(row);
+  initTextareas(row);
 
   // Build toolbar
   const tb = document.getElementById('tb-' + id);
